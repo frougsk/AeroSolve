@@ -12,7 +12,7 @@ Simplex <- function(tableau, isMax = TRUE){
     # stores initial tableau
     iterTables[[iterCount]] <- list( # because r doesnt do 0 indexing
       tableau = tableau, 
-      basicSol = numeric(ncol(tableau)), 
+      basicSol = double(ncol(tableau)), 
       pivotRow = NA, 
       pivotCol = NA
     )
@@ -65,11 +65,23 @@ Simplex <- function(tableau, isMax = TRUE){
       
     }
     
-    # check if the smallest ratio is inf, if true program stops
+    # check if the smallest ratio is Inf → infeasible
     if (is.infinite(smallestRatio)) {
-      return(list( status = "INFEASIBLE", message = "Problem is unbounded.", iterTables = iterTables))
-      break
+      
+      # save the final tableau BEFORE stopping
+      iterTables[[length(iterTables) + 1]] <- list(
+        tableau = tableau,
+        pivotRow = NA,
+        pivotCol = pivotCol  # or NA if you prefer
+      )
+      
+      return(list(
+        status = "INFEASIBLE",
+        message = "Problem is unbounded.",
+        iterTables = iterTables
+      ))
     }
+    
     
     # store pivot information
     iterTables[[iterCount]]$pivotRow <- pivotRow
@@ -93,7 +105,7 @@ Simplex <- function(tableau, isMax = TRUE){
   }
   
   # this is for the Basic Solution
-  basicSol <- numeric(ncol(tableau))  # make a vector to store results, no -1 since we save it for the solution
+  basicSol <- double(ncol(tableau))  # make a vector to store results, no -1 since we save it for the solution
   
   for (j in 1:(ncol(tableau) - 1)) {
     col <- tableau[1:(nrow(tableau)-1), j]  # take the column without Z row
@@ -225,27 +237,25 @@ targets <- c(
 )
 
 ui <- fluidPage(
-  titlePanel("City of Greenvale - Pollution Reduction Plan"),
-  
   tags$head(
     # Import Google Font
     tags$link(
       rel = "stylesheet",
-      href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      href = "https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap"
     ),
     
     tags$style(HTML("
       /* custom font*/
       @font-face {
         font-family: 'Frutiger';
-        src: url('fonts/Fruitger Reguular.ttf') format('truetype');
+        src: url('fonts/Frutiger Regular.ttf') format('truetype');
         font-weight: normal;
         font-style: normal;
       }
       
       @font-face {
         font-family: 'Neuropol';
-        src: url('fonts/Neuropol.otf') format('onetype');
+        src: url('fonts/Neuropol.otf') format('opentype');
         font-weight: normal;
         font-style: normal;
       }
@@ -264,32 +274,71 @@ ui <- fluidPage(
         font-style: normal;
       }
       
+      @font-face {
+        font-family: 'Sofachrome';
+        src: url('fonts/Sofachrome Rg It.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+      }\
+      
       /* Apply font globally */
-      body, .form-control, .btn, h1, h6, p, label {
-        font-family: 'Frutiger' ,'Poppins', sans-serif;
+      body, .form-control, .btn, h1, label {
+        font-family: 'Frutiger' ,'Segoe UI', sans-serif;
+      }
+      
+      h1{
+        font-family: 'Sofachrome' ,'Segoe UI', sans-serif;
+        color: #0066CC; 
+        font-size: 42px; 
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(104, 176, 230, 0.3);
       }
       
       h2{
-        font-family: 'Nulshock' ,'Poppins', sans-serif;
-        color: #3979FA;
+        font-family: 'Nulshock' ,'Segoe UI', sans-serif;
+        font-size: 18px; 
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(104, 176, 230, 0.3);
+        
+        background: linear-gradient(
+        90deg,
+        #3979FA 0%, 
+        #68B0E6 50%,   
+        #3979FA 100%
+        ); 
+      
+        -webkit-background-clip: text;
+        background-clip: text;
+      
+        color: transparent; 
       }
       
       h4 {
-        font-family: 'Neuropol' ,'Poppins', sans-serif;
+        font-family: 'Neuropol' ,'Segoe UI', sans-serif;
+        margin: 10px 0px 10px 0px;
         font-size: 20px;
-        color: #3979FA;
+        color: #1948a6;
       }
       
       h3{
-        font-family: 'Neuropol' ,'Poppins', sans-serif;
+        font-family: 'Neuropol' ,'Segoe UI', sans-serif;
+        margin: 10px 0px 10px 0px;
         font-size: 30px;
-        color: #3979FA;
+        color: #1948a6;
       }
       
-      h5, h6 {
-        font-family: 'Conthrax' ,'Poppins', sans-serif;
+      h5, h6{
+        font-family: 'Conthrax' ,'Segoe UI', sans-serif;
+        margin: 10px 0px 10px 0px;
         font-size: 20px;
-        color: #3979FA;
+        color: #1948a6;
+      }
+      
+      p{
+        font-family: 'Frutiger' ,'Segoe UI', sans-serif;
+        margin: 10px 0px 10px 0px;
+        font-size: 12px;
+        color
       }
       
       /* Authentic Frutiger Aero Button CSS */
@@ -385,7 +434,7 @@ ui <- fluidPage(
         font-size: 1.125rem;
       }
       
-      /* Background image */
+      /* background image */
       body {
         background-image: url('frutigerbg.png');
         background-size: cover;
@@ -398,8 +447,191 @@ ui <- fluidPage(
         background-color: rgba(255, 255, 255, 0.9);
         padding: 20px;
         border-radius: 30px;
-        margin: 50px;
+        margin: 50px auto;
+        max-width: 90%;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 80px rgba(255, 255, 255, 0.3);
+      }
+      
+      /* Animated background glow */
+      body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+          radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(104, 176, 230, 0.08) 0%, transparent 50%),
+          radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 50%);
+        animation: float 20s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -30px) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) rotate(240deg); }
+      }
+      
+      /* Enhanced container with Vista-style chrome */
+      .container-fluid {
+        position: relative;
+        overflow: visible;
+      }
+      
+      .container-fluid::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: linear-gradient(180deg, 
+          rgba(255, 255, 255, 0.4) 0%, 
+          rgba(255, 255, 255, 0.1) 100%);
+        border-radius: 30px 30px 0 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        pointer-events: none;
+      }
+      
+      /* Glossy sidebar enhancement */
+      .col-sm-3 {
+        background: linear-gradient(135deg, 
+          rgba(255, 255, 255, 0.4) 0%, 
+          rgba(240, 248, 255, 0.3) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px;
+        box-shadow: 
+          0 4px 16px rgba(0, 0, 0, 0.1),
+          0 1px 0 rgba(255, 255, 255, 0.6) inset;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+      
+      /* Main panel glass effect */
+      .col-sm-8 {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        border-radius: 15px;
+        padding: 25px;
+        margin: 10px;
+        box-shadow: 
+          0 2px 12px rgba(0, 0, 0, 0.08),
+          0 1px 0 rgba(255, 255, 255, 0.4) inset;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+      }
+      
+      /* Enhanced checkboxes with hover glow */
+      .checkbox {
+        margin: 8px 0;
+        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+      }
+      
+      .checkbox:hover {
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 2px 8px rgba(104, 176, 230, 0.2);
+        border: 1px solid rgba(104, 176, 230, 0.3);
+      }
+      
+      .checkbox label {
+        cursor: pointer;
+        transition: color 0.2s ease;
+      }
+      
+      .checkbox:hover label {
+        color: #0066CC;
+      }
+      
+      input[type=checkbox] {
+          accent-color: #4b8ccc;
+          width: 1.1em;
+          height: 1.1em;
+          background-color: rgba(255, 255, 255, 0.5); 
+          border: 1px solid rgba(104, 176, 230, 0.5);
+      }
+      
+      /* Scrollable area with custom Vista-style scrollbar */
+      .project-scroll-box {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 10px;
+        margin-bottom: 15px;
+      }
+      
+      .project-scroll-box::-webkit-scrollbar {
+        width: 14px;
+      }
+      
+      .project-scroll-box::-webkit-scrollbar-track {
+        background: rgba(200, 220, 240, 0.2);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+      }
+      
+      .project-scroll-box::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, 
+          rgba(104, 176, 230, 0.7) 0%, 
+          rgba(68, 150, 210, 0.7) 100%);
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 
+          0 2px 4px rgba(0, 0, 0, 0.2) inset,
+          0 1px 0 rgba(255, 255, 255, 0.5) inset;
+      }
+      
+      .project-scroll-box::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, 
+          rgba(124, 196, 250, 0.8) 0%, 
+          rgba(88, 170, 230, 0.8) 100%);
+      }
+      
+      /* Enhanced result sections with glass morphism */
+      .result-section {
+        background: linear-gradient(135deg, 
+          rgba(180, 240, 180, 0.4) 0%, 
+          rgba(160, 230, 160, 0.3) 100%);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(120, 200, 120, 0.4);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          0 1px 0 rgba(255, 255, 255, 0.6) inset;
+      }
+      
+      .infeasible-section {
+        background: linear-gradient(135deg, 
+          rgba(255, 200, 180, 0.4) 0%, 
+          rgba(255, 180, 160, 0.3) 100%);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 140, 100, 0.4);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          0 1px 0 rgba(255, 255, 255, 0.6) inset;
+      }
+      
+      /* Enhanced verbatim/pre elements */
+      pre, .shiny-text-output {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(200, 220, 240, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 
+          0 2px 8px rgba(0, 0, 0, 0.08) inset,
+          0 1px 0 rgba(255, 255, 255, 0.4);
       }
       
       .checkbox-grid {
@@ -408,35 +640,58 @@ ui <- fluidPage(
         gap: 10px;
       }
       
-      .result-section {
-        background-color: #f8f9fa;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 8px;
-        border-left: 4px solid #28a745;
-      }
-      
-      .infeasible-section {
-        background-color: #fff3cd;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 8px;
-        border-left: 4px solid #dc3545;
-      }
-      
       .tableau-box {
         overflow-x: auto;
         font-size: 11px;
-        background: white;
-        padding: 10px;
-        border: 1px solid #ddd;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        padding: 15px;
+        border: 1px solid rgba(200, 220, 240, 0.5);
+        border-radius: 12px;
         margin: 10px 0;
+        box-shadow: 
+          0 4px 12px rgba(0, 0, 0, 0.08),
+          0 1px 0 rgba(255, 255, 255, 0.5) inset;
+      }
+      
+      /* DataTables enhancement */
+      .dataTables_wrapper {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(5px);
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid rgba(200, 220, 240, 0.3);
+      }
+      
+      table.dataTable thead th {
+        background: linear-gradient(180deg, 
+          rgba(104, 176, 230, 0.2) 0%, 
+          rgba(80, 156, 210, 0.2) 100%);
+        border-bottom: 2px solid rgba(104, 176, 230, 0.4);
+      }
+      
+      table.dataTable tbody tr:hover {
+        background: rgba(104, 176, 230, 0.1) !important;
+      }
+      
+      /* Enhanced HR with glow */
+      hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, 
+          transparent 0%, 
+          rgba(104, 176, 230, 0.4) 50%, 
+          transparent 100%);
+        box-shadow: 0 1px 2px rgba(104, 176, 230, 0.2);
+        margin: 25px 0;
       }
       
       /* About modal styling */
       .modal-content {
         border-radius: 15px;
         background-color: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
       }
       
       .modal-header {
@@ -444,7 +699,29 @@ ui <- fluidPage(
         color: white;
         border-radius: 15px 15px 0 0;
       }
+      
+      /* Smooth transitions for all interactive elements */
+      * {
+        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      }
     "))
+  ),
+  
+  div(class = "banner-container",
+      div(class = "banner",
+          div(class = "banner-text-content",
+              h1("City of Greenvale", style = "margin: 0px 0px 0px 30px; padding: 0; line-height: 1.2;"),
+              h2("Pollution Reduction Planner using Simplex Method!", style = "margin: 0px 0px 0px 50px; padding: 0; line-height: 1.2;")
+          )
+      ),
+  
+      div(class = "right-aligned-button",
+          actionButton("infoButton", 
+                       "About Us", 
+                       icon = icon("info-circle"),
+                       class = "frutiger-aero-button medium",
+                       style = "margin: 5px 0px 10px 30px; --hue: 240; font-size: 14px;")
+      ),
   ),
   
   sidebarLayout(
@@ -458,7 +735,7 @@ ui <- fluidPage(
                    style = "margin-bottom: 10px; font-size: 14px;"),
       actionButton("reset", "Reset", 
                    class = "frutiger-aero-button medium btn-block", 
-                   style = "margin-bottom: 20px; --hue: 30; font-size: 14px;"),
+                   style = "margin-bottom: 20px; --hue: 190; font-size: 14px;"),
       hr(),
       # Changed to use the new scrollable class
       div(class = "project-scroll-box",
@@ -467,32 +744,41 @@ ui <- fluidPage(
       
       hr(),
       actionButton("solve", "Let's Optimize!", 
-                   class = "frutiger-aero-button large btn-block", 
-                   style = "font-size: 14px; --hue: 210;",
+                   class = "frutiger-aero-button medium btn-block", 
+                   style = "margin-bottom: 10px; --hue: 180; font-size: 14px;",
                    icon = icon("calculator"))
     ),
     
     mainPanel(
-      width = 9,
+      width = 8,
       
       h3("Your Input"),
       verbatimTextOutput("selectedProjects"),
       
+      
       conditionalPanel(
         condition = "output.hasSolution",
-        
+        hr(),
         uiOutput("resultHeader"),
         
         conditionalPanel(
           condition = "output.isOptimal",
           
+          hr(),
+          h3("Basic Solution"),
+          div(class = "tableau-box", 
+              verbatimTextOutput("BasicSolution") # This is the new output
+          ),
+          
+          hr(),
           h3("Project Breakdown"),
           DTOutput("solutionTable"),
           
           hr(),
           h3("Constraint Verification"),
-          DTOutput("constraintTable"),
-          
+          DTOutput("constraintTable")
+        ),
+        
           hr(),
           h3("Tableau and Iteration Details"),
           
@@ -527,7 +813,6 @@ ui <- fluidPage(
       )
     )
   )
-)
 
 # shiny server
 server <- function(input, output, session) {
@@ -615,13 +900,13 @@ server <- function(input, output, session) {
     })
   })
   
-  # Check if solution exists
+  # checker if the solution exists
   output$hasSolution <- reactive({
     !is.null(solverResult())
   })
   outputOptions(output, "hasSolution", suspendWhenHidden = FALSE)
   
-  # Check if optimal
+  # if it has solution, check if optimal
   output$isOptimal <- reactive({
     if (!is.null(solverResult())) {
       return(solverResult()$result$status == "OPTIMAL")
@@ -630,27 +915,36 @@ server <- function(input, output, session) {
   })
   outputOptions(output, "isOptimal", suspendWhenHidden = FALSE)
   
-  # Result header
+  # prints result
   output$resultHeader <- renderUI({
     req(solverResult())
     result <- solverResult()$result
     
     if (result$status == "OPTIMAL") {
       div(class = "result-section",
-          h3("Your Plan is FEASIBLE"),
+          h3(style = "font-family: 'Nulshock'; font-size: 36px; font-weight: 700;text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(104, 176, 230, 0.3);", "Your Plan is FEASIBLE :)"),
           h6(style = "color: #28a745;", 
              paste0("The cost of this optimal mitigation project is $", 
                     format(abs(result$Z), nsmall = 2, big.mark = ",")))
       )
     } else {
       div(class = "infeasible-section",
-          h3("Your Plan is INFEASIBLE"),
-          p(result$message)
+          h3(style = "font-family: 'Nulshock'; font-size: 36px; font-weight: 700;text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(104, 176, 230, 0.3);", "Your Plan is INFEASIBLE :("),
+          h6(style = "color: #a72828",result$message)
       )
     }
   })
   
-  # Solution table
+  # helper function that prints rownames and colnames since shiny removes them by default
+  printMatrix <- function(M) {
+    M <- as.matrix(M)
+    colnames(M) <- NULL
+    rownames(M) <- NULL
+    cat(capture.output(print(M)), sep="\n")
+  }
+  
+  
+  # the solution table
   output$solutionTable <- renderDT({
     req(solverResult())
     req(solverResult()$result$status == "OPTIMAL")
@@ -664,8 +958,8 @@ server <- function(input, output, session) {
     
     solutionDF <- data.frame(
       `Mitigation Project` = character(),
-      `Number of Project Units` = numeric(),
-      `Cost ($)` = numeric(),
+      `Number of Project Units` = double(),
+      `Cost ($)` = double(),
       stringsAsFactors = FALSE,
       check.names = FALSE
     )
@@ -675,7 +969,7 @@ server <- function(input, output, session) {
         projectCost <- solution[i] * Projects$cost[tableauData$projectNumbers[i]]
         solutionDF <- rbind(solutionDF, data.frame(
           `Mitigation Project` = tableauData$projectNames[i],
-          `Number of Project Units` = round(solution[i], 8),
+          `Number of Project Units` = round(solution[i], 2),
           `Cost ($)` = round(projectCost, 2),
           stringsAsFactors = FALSE,
           check.names = FALSE
@@ -687,8 +981,33 @@ server <- function(input, output, session) {
               options = list(pageLength = 20, dom = 't'),
               rownames = FALSE)
   })
+
+  # solution summary
+  output$BasicSolution <- renderPrint({
+    req(solverResult())
+    res <- solverResult()
+    req(res$result$status == "OPTIMAL")
+    options(width = 10000)
+    
+    # Extract last row but remove last column
+    finalRow <- res$result$finalTableau[nrow(res$result$finalTableau), 
+                                        -ncol(res$result$finalTableau)]
+    
+    # Convert to numeric vector
+    finalRow <- as.numeric(finalRow)
+    
+    # Round to 2 decimals
+    finalRow <- round(finalRow, 2)
+    
+    # Convert to 1-row matrix
+    finalRowMatrix <- matrix(finalRow, nrow = 1)
+    
+    printMatrix(finalRowMatrix)
+  })
   
-  # Constraint verification
+  
+
+  # verifies constraints
   output$constraintTable <- renderDT({
     req(solverResult())
     req(solverResult()$result$status == "OPTIMAL")
@@ -705,8 +1024,8 @@ server <- function(input, output, session) {
     
     verificationDF <- data.frame(
       Pollutant = character(),
-      Target = numeric(),
-      Achieved = numeric(),
+      Target = double(),
+      Achieved = double(),
       Status = character(),
       stringsAsFactors = FALSE
     )
@@ -733,22 +1052,21 @@ server <- function(input, output, session) {
                                                c('#d4edda', '#f8d7da')))
   })
   
-  # Initial tableau
+  # prints initial tableau
   output$initialTableau <- renderPrint({
     req(initialTableau())
     options(width = 10000)
-    print(initialTableau())
+    printMatrix(initialTableau())
   })
   
-  # Final tableau
+  # final tableau
   output$finalTableau <- renderPrint({
     req(solverResult())
-    req(solverResult()$result$status == "OPTIMAL")
     options(width = 10000)
-    print(solverResult()$result$finalTableau)
+    printMatrix(round(solverResult()$result$finalTableau, 4))
   })
   
-  # Iteration details
+  # prints details of the iteration details, prints pivot row and pivot col
   output$iterationDetails <- renderUI({
     req(solverResult())
     options(width = 10000)
@@ -758,7 +1076,7 @@ server <- function(input, output, session) {
       iter <- result$iterTables[[i]]
       
       div(class = "tableau-box",
-          h5(paste("Iteration", i-1)),
+          h5(paste("Iteration", i)),
           p(strong("Pivot Row:"), ifelse(is.na(iter$pivotRow), "N/A", iter$pivotRow)),
           p(strong("Pivot Column:"), ifelse(is.na(iter$pivotCol), "N/A", iter$pivotCol)),
           verbatimTextOutput(paste0("iter_", i))
@@ -768,7 +1086,7 @@ server <- function(input, output, session) {
     do.call(tagList, iterations)
   })
   
-  # Render each iteration tableau
+  # renders each tableau result
   observe({
     req(solverResult())
     result <- solverResult()$result
@@ -777,7 +1095,7 @@ server <- function(input, output, session) {
       local({
         my_i <- i
         output[[paste0("iter_", my_i)]] <- renderPrint({
-          print(result$iterTables[[my_i]]$tableau)
+          printMatrix(round(result$iterTables[[my_i]]$tableau, 4))
         })
       })
     }
