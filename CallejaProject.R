@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyWidgets)
 library(dplyr)
 library(DT)
 
@@ -66,7 +67,7 @@ Simplex <- function(tableau, isMax = TRUE){
     
     # check if the smallest ratio is inf, if true program stops
     if (is.infinite(smallestRatio)) {
-      return(list( status = "INFEASIBLE", message = "Problem is unbounded or infeasible.", iterTables = iterTables))
+      return(list( status = "INFEASIBLE", message = "Problem is unbounded.", iterTables = iterTables))
       break
     }
     
@@ -227,12 +228,186 @@ ui <- fluidPage(
   titlePanel("City of Greenvale - Pollution Reduction Plan"),
   
   tags$head(
+    # Import Google Font
+    tags$link(
+      rel = "stylesheet",
+      href = "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+    ),
+    
     tags$style(HTML("
+      /* custom font*/
+      @font-face {
+        font-family: 'Frutiger';
+        src: url('fonts/Fruitger Reguular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      
+      @font-face {
+        font-family: 'Neuropol';
+        src: url('fonts/Neuropol.otf') format('onetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      
+      @font-face {
+        font-family: 'Nulshock';
+        src: url('fonts/Nulshock Bd.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      
+      @font-face {
+        font-family: 'Conthrax';
+        src: url('fonts/Conthrax.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+      }
+      
+      /* Apply font globally */
+      body, .form-control, .btn, h1, h6, p, label {
+        font-family: 'Frutiger' ,'Poppins', sans-serif;
+      }
+      
+      h2{
+        font-family: 'Nulshock' ,'Poppins', sans-serif;
+        color: #3979FA;
+      }
+      
+      h4 {
+        font-family: 'Neuropol' ,'Poppins', sans-serif;
+        font-size: 20px;
+        color: #3979FA;
+      }
+      
+      h3{
+        font-family: 'Neuropol' ,'Poppins', sans-serif;
+        font-size: 30px;
+        color: #3979FA;
+      }
+      
+      h5, h6 {
+        font-family: 'Conthrax' ,'Poppins', sans-serif;
+        font-size: 20px;
+        color: #3979FA;
+      }
+      
+      /* Authentic Frutiger Aero Button CSS */
+      /* from https://makeaero.com/ */
+      .frutiger-aero-button {
+        /* OKLCH Color System for accurate colors */
+        --hue: 140;
+        --sat: 0.4;
+        --glow-intensity: 0.75;
+        
+        /* Color Variables */
+        --fg: oklch(15% calc(var(--sat) * 0.5) var(--hue));
+        --bg: oklch(75% var(--sat) var(--hue) / 0.8);
+        --bg-dark: oklch(45% var(--sat) var(--hue) / 0.75);
+        --bottom-glow: radial-gradient(
+          farthest-corner at bottom center,
+          rgba(255, 255, 255, var(--glow-intensity)),
+          transparent
+        );
+        
+        /* Base Styling */
+        background-color: var(--bg);
+        background: 
+          var(--bottom-glow),
+          linear-gradient(to bottom, var(--bg-dark), var(--bg));
+        
+        border: 1px solid var(--bg);
+        border-radius: 9999px;
+        
+        /* Shadows and Effects */
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
+        
+        /* Typography */
+        color: var(--fg);
+        font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Segoe UI', system-ui, sans-serif;
+        font-weight: 700;
+        text-shadow: 0 2px 0.5em rgba(0, 0, 0, 0.2);
+        
+        /* Layout */
+        cursor: pointer;
+        position: relative;
+        transition: all 300ms ease;
+        
+        /* Prevent text selection */
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      
+      /* Top Highlight Effect */
+      .frutiger-aero-button::after {
+        content: '';
+        position: absolute;
+        top: 4%;
+        left: 0.75em;
+        width: calc(100% - 1.5em);
+        height: 40%;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.8),
+          rgba(255, 255, 255, 0.1)
+        );
+        border-radius: inherit;
+        transition: background 400ms ease;
+        pointer-events: none;
+      }
+      
+      /* Hover State */
+      .frutiger-aero-button:hover,
+      .frutiger-aero-button:focus {
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+        transform: translateY(-1px);
+      }
+      
+      /* Active State */
+      .frutiger-aero-button:active {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        transform: translateY(1px);
+      }
+      
+      /* Size Variations */
+      .frutiger-aero-button.small {
+        padding: 0.5em 1.5em;
+        font-size: 0.875rem;
+      }
+      
+      .frutiger-aero-button.medium {
+        padding: 0.75em 2em;
+        font-size: 1rem;
+      }
+      
+      .frutiger-aero-button.large {
+        padding: 1em 3em;
+        font-size: 1.125rem;
+      }
+      
+      /* Background image */
+      body {
+        background-image: url('frutigerbg.png');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+
+      .container-fluid {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 30px;
+        margin: 50px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 80px rgba(255, 255, 255, 0.3);
+      }
+      
       .checkbox-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
+        gap: 10px;
       }
+      
       .result-section {
         background-color: #f8f9fa;
         padding: 20px;
@@ -240,6 +415,7 @@ ui <- fluidPage(
         border-radius: 8px;
         border-left: 4px solid #28a745;
       }
+      
       .infeasible-section {
         background-color: #fff3cd;
         padding: 20px;
@@ -247,6 +423,7 @@ ui <- fluidPage(
         border-radius: 8px;
         border-left: 4px solid #dc3545;
       }
+      
       .tableau-box {
         overflow-x: auto;
         font-size: 11px;
@@ -255,27 +432,43 @@ ui <- fluidPage(
         border: 1px solid #ddd;
         margin: 10px 0;
       }
+      
+      /* About modal styling */
+      .modal-content {
+        border-radius: 15px;
+        background-color: rgba(255, 255, 255, 0.98);
+      }
+      
+      .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+      }
     "))
   ),
   
   sidebarLayout(
     sidebarPanel(
       width = 3,
-      h4("Select Mitigation Projects"),
+      h4("Select Projects"),
+      
+      # Frutiger Aero styled buttons
       actionButton("selectAll", "Check All", 
-                   class = "btn-primary btn-block", 
-                   style = "margin-bottom: 10px;"),
+                   class = "frutiger-aero-button medium btn-block", 
+                   style = "margin-bottom: 10px; font-size: 14px;"),
       actionButton("reset", "Reset", 
-                   class = "btn-warning btn-block", 
-                   style = "margin-bottom: 20px;"),
+                   class = "frutiger-aero-button medium btn-block", 
+                   style = "margin-bottom: 20px; --hue: 30; font-size: 14px;"),
       hr(),
-      div(style = "height: 500px; overflow-y: auto;",
+      # Changed to use the new scrollable class
+      div(class = "project-scroll-box",
           uiOutput("projectCheckboxes")
       ),
+      
       hr(),
-      actionButton("solve", "Solve Optimization", 
-                   class = "btn-success btn-block", 
-                   style = "font-size: 16px; padding: 12px;",
+      actionButton("solve", "Let's Optimize!", 
+                   class = "frutiger-aero-button large btn-block", 
+                   style = "font-size: 14px; --hue: 210;",
                    icon = icon("calculator"))
     ),
     
@@ -293,7 +486,7 @@ ui <- fluidPage(
         conditionalPanel(
           condition = "output.isOptimal",
           
-          h3("The Solution and Cost Breakdown by Mitigation Project"),
+          h3("Project Breakdown"),
           DTOutput("solutionTable"),
           
           hr(),
@@ -394,10 +587,10 @@ server <- function(input, output, session) {
     if (length(selectedProjects()) == 0) {
       return("No projects selected")
     } else if (length(selectedProjects()) == 30) {
-      return("You selected all the possible mitigation projects")
+      return("All the possible mitigation projects have been selected")
     } else {
       projectNames <- Projects$name[selectedProjects()]
-      paste("You selected:\n", paste(projectNames, collapse = "\n"))
+      paste(paste(projectNames, collapse = "\n"))
     }
   })
   
@@ -444,16 +637,14 @@ server <- function(input, output, session) {
     
     if (result$status == "OPTIMAL") {
       div(class = "result-section",
-          h3("Sample (FEASIBLE)"),
-          h4("The Optimized Cost"),
-          h3(style = "color: #28a745;", 
+          h3("Your Plan is FEASIBLE"),
+          h6(style = "color: #28a745;", 
              paste0("The cost of this optimal mitigation project is $", 
                     format(abs(result$Z), nsmall = 2, big.mark = ",")))
       )
     } else {
       div(class = "infeasible-section",
-          h3("Sample (INFEASIBLE)"),
-          h4("The problem is infeasible."),
+          h3("Your Plan is INFEASIBLE"),
           p(result$message)
       )
     }
@@ -594,4 +785,5 @@ server <- function(input, output, session) {
 }
 
 # Run the app
+options(shiny.launch.browser = TRUE) # makes it open in the browser asap
 shinyApp(ui = ui, server = server)
