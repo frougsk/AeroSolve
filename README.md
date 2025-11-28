@@ -182,3 +182,9 @@ output$myTable <- renderUI({
 
 ### Design Inspiration
 - **Frutiger Aero Style**: Windows Vista/7 design language
+
+### References
+- **Frutiger Aero Archive** : https://frutigeraeroarchive.org/resources
+- **Frutiger Aero Globe** : https://www.rolimons.com/item/128820996724306
+- **Make Aero Button Generator** : https://makeaero.com/
+- **Background Image** : https://medium.com/@anannyarao878/frutiger-aero-the-utopian-future-left-behind-f015b4fc8aff
