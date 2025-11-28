@@ -1,6 +1,6 @@
 
 # Pollution Reduction Simulator
-A beautiful, interactive Shiny application that uses the **Simplex Method** to optimize pollution reduction strategies for the City of Greenvale. Built with a stunning Frutiger Aero aesthetic inspired by Windows Vista/7 design language.
+An interactive Shiny application that uses **Simplex Method** to optimize pollution reduction strategies for the City of Greenvale. Built with a stunning Frutiger Aero aesthetic :)
 
 ---
 
