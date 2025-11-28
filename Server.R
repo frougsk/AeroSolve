@@ -146,7 +146,7 @@ server <- function(input, output, session) {
     
     numOfPollutants <- 10
     solution <- result$finalTableau[nrow(result$finalTableau), 
-                                    (numOfPollutants + tableauData$numOfProjects + 1):(numOfPollutants + 2*tableauData$numOfProjects + 1)]
+                                    (numOfPollutants + tableauData$numOfProjects + 1):(numOfPollutants + 2*tableauData$numOfProjects)]
     
     solutionDF <- data.frame(
       `Mitigation Project` = character(),
@@ -226,7 +226,8 @@ server <- function(input, output, session) {
     )
     
     for (i in 1:10) {
-      achieved <- sum(solution * Projects[[pollutantCols[i]]][tableauData$projectNumbers])
+      projectPollutants <- Projects[[pollutantCols[i]]][tableauData$projectNumbers]
+      achieved <- sum(solution * projectPollutants)
       
       isMet <- achieved >= (targets[i] - 1e-6)
       
